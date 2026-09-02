@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Spam Email Classifier + OCR</title>
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+body{font-family:Arial;margin:0;background:#1e3c72;color:#222}
+.wrap{max-width:900px;margin:20px auto;background:#fff;padding:20px;border-radius:12px}
+textarea{width:100%;height:180px}button{padding:10px 18px;margin:10px 0}
+img{max-width:100%;display:none;border:1px solid #ccc;border-radius:8px}
+#status{color:#1565c0;font-weight:bold}
+</style></head><body><div class="wrap">
+<h2>AI Spam Email Classifier (HTML+CSS+JavaScript)</h2>
+<input type="file" id="file" accept="image/*"><br>
+<img id="preview">
+<p id="status"></p>
+<textarea id="email" placeholder="Type email or upload a screenshot above."></textarea><br>
+<button onclick="classifyEmail()">Check Email</button>
+<div id="result"></div>
+</div>
+<script>
+const spamWords=["win","winner","free","offer","urgent","click","claim","lottery","money","cash","prize","reward","gift","congratulations","discount","verify","password","bank","login","bonus","exclusive","cheap","buy now","selected"];
+document.getElementById("file").addEventListener("change",async(e)=>{
+ const f=e.target.files[0]; if(!f)return;
+ const img=document.getElementById("preview");
+ img.src=URL.createObjectURL(f); img.style.display="block";
+ status.textContent="Reading text from image...";
+ const {data:{text}}=await Tesseract.recognize(f,"eng");
+ document.getElementById("email").value=text;
+ status.textContent="Text extracted successfully. Click 'Check Email'.";
+});
+function classifyEmail(){
+ const t=document.getElementById("email").value.toLowerCase();
+ let score=0,found=[];
+ spamWords.forEach(w=>{if(t.includes(w)){score++;found.push(w)}});
+ if(t.includes("http"))score+=2;
+ let conf=Math.min(99,60+score*8);
+ let out=document.getElementById("result");
+ if(score>=2){
+ out.innerHTML="<h3 style='color:red'>SPAM</h3><p>Confidence: "+conf+"%</p><p>Keywords: "+(found.join(", ")||"None")+"</p>";
+ }else{
+ out.innerHTML="<h3 style='color:green'>NOT SPAM</h3><p>Confidence: "+(100-conf)+"%</p>";
+ }
+}
+</script></body></html>
